@@ -51,9 +51,9 @@ resource "aws_subnet" "main_subnet" {
   }
 }
 
-resource "aws_security_group" "allow_tls" {
+resource "aws_security_group" "allow_internet_access" {
   name        = "allow_tls"
-  description = "Allow SSH inbound traffic and all TLS  outbound traffic"
+  description = "Allow outbound internet traffic"
   vpc_id      = aws_vpc.main_vpc.id
 
   tags = {
@@ -61,8 +61,18 @@ resource "aws_security_group" "allow_tls" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv4" {
-  security_group_id = aws_security_group.allow_tls.id
+resource "aws_security_group" "allow_ollama" {
+  name        = "allow_ollama"
+  description = "Allow inbound requests to ollama"
+  vpc_id      = aws_vpc.main_vpc.id
+
+  tags = {
+    Name = "allow_ollama"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_ollama_shh" {
+  security_group_id = aws_security_group.allow_ollama.id
   cidr_ipv4         = format("%v/32", var.local_ip)
   from_port         = 22
   ip_protocol       = "tcp"
@@ -70,11 +80,27 @@ resource "aws_vpc_security_group_ingress_rule" "allow_tls_ipv4" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_download_ipv4" {
-  security_group_id = aws_security_group.allow_tls.id
+  security_group_id = aws_security_group.allow_internet_access.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 443
   ip_protocol       = "tcp"
   to_port           = 443
+}
+
+resource "aws_vpc_security_group_egress_rule" "allow_download_http" {
+  security_group_id = aws_security_group.allow_internet_access.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 80
+  ip_protocol       = "tcp"
+  to_port           = 80
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_ollama_endpoint" {
+  security_group_id = aws_security_group.allow_ollama.id
+  cidr_ipv4         = format("%v/32", var.local_ip)
+  from_port         = 11434
+  ip_protocol       = "tcp"
+  to_port           = 11434
 }
 
 resource "aws_route_table" "second_rt" {
@@ -97,13 +123,14 @@ resource "aws_route_table_association" "public_subnet_asso" {
 
 resource "aws_instance" "web" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               =  "t3.small" # "g4dn.xlarge"
+  user_data                   = "${file("./scripts/startup.sh")}"
+  instance_type               = var.instance_type
   subnet_id                   = aws_subnet.main_subnet.id
   associate_public_ip_address = true
   key_name                    = var.key_pair_name
-  vpc_security_group_ids      = [aws_security_group.allow_tls.id]
+  vpc_security_group_ids      = [aws_security_group.allow_internet_access.id, aws_security_group.allow_ollama.id]
   root_block_device {
-    volume_size           = 50
+    volume_size           = var.volume_size
     volume_type           = "gp3"
     delete_on_termination = true
   }

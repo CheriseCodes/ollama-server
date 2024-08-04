@@ -123,7 +123,7 @@ resource "aws_route_table_association" "public_subnet_asso" {
 
 resource "aws_instance" "web" {
   ami                         = data.aws_ami.ubuntu.id
-  user_data                   = "${file("./scripts/startup.sh")}"
+  user_data                   = file("./scripts/startup.sh")
   instance_type               = var.instance_type
   subnet_id                   = aws_subnet.main_subnet.id
   associate_public_ip_address = true

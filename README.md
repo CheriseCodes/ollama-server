@@ -7,17 +7,6 @@
 
 ## Limitations
 - It may take a few minutes after `terraform apply` finishes for Ollama to be up and running. You can run `cloud-init status --wait` to confirm that User Data script has finished running.
-- Before running the tests below, you will need to ssh into the server and edit `ollama.service` like so:
-```
-sudo systemctl edit ollama.service
-
-### config to add
-[Service] 
-Environment="OLLAMA_HOST=0.0.0.0"
-
-sudo systemctl daemon-reload
-sudo systemctl restart ollama
-```
 
 ## Tests
 From your local machine can now run command like: 

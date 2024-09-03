@@ -9,7 +9,7 @@
 - It may take a few minutes after `terraform apply` finishes for Ollama to be up and running. You can run `cloud-init status --wait` to confirm that the User Data script has finished running.
 
 ## Tests
-From your local machine can now run commands like: 
+From your local machine you can now run commands like: 
 ```
 curl http://<ec2_public_dns>:11434/api/generate -d '{
   "model": "llama3.1",

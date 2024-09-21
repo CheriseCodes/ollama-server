@@ -6,7 +6,7 @@
 3. Once satisfied with the plan run `terraform apply -var-file="custom.tfvars"`
 
 ## Limitations
-- It may take a few minutes after `terraform apply` finishes for Ollama to be up and running. You can run `cloud-init status --wait` to confirm that the User Data script has finished running.
+- It may take a few minutes after `terraform apply` finishes for Ollama to be up and running. You can run `cloud-init status --wait` inside the EC2 instance to confirm that the User Data script has finished running.
 
 ## Tests
 From your local machine you can now run commands like: 
